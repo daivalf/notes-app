@@ -36,14 +36,12 @@ if(widget.note != null) {
           onPressed: () => Navigator.pop(context), 
           icon: new Icon(Icons.arrow_back_ios_new, color: Color(0xFFF0E9E0),)
           ),
-        actions: [
-          IconButton(onPressed: () {
-            Navigator.pop(context, [
-              _titleController.text,
-              _contentController.text,
-            ]);
+        actions: <Widget>[
+          if (widget.note != null)
+          IconButton(onPressed: (){
+            // isi dengan delete
           }, 
-          icon: Icon(Icons.check, color: Color(0xFFF0E9E0),)
+            icon: Icon(Icons.delete, color: Color(0xFFF0E9E0),)
           ),
         ],
       ),
@@ -81,6 +79,24 @@ if(widget.note != null) {
               ],
             ))
           ],
+        ),
+      ),
+      floatingActionButton: Container(
+        height: 80,
+        width: 80,
+        child: FloatingActionButton(onPressed: () {
+            Navigator.pop(context, [
+              _titleController.text,
+              _contentController.text,
+            ]);
+        },
+        elevation: 20,
+        backgroundColor: Color(0xFF3D4C7F),
+        child: Icon(
+          Icons.save,
+          size: 40,
+          color: Color(0xFFF0E9E0),
+          ),
         ),
       ),
     );
