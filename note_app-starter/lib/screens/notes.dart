@@ -53,7 +53,9 @@ void _addNewNote(String title, String content, String selectedDate) {
         title: title,
         content: content, 
         modifiedTime: DateTime.now(),
-        selectedDate: DateFormat('EEEE, d MMMM yyyy, h:mm a', 'id_ID').parse(selectedDate),
+        selectedDate: selectedDate.isNotEmpty
+        ? DateFormat('EEEE, d MMMM yyyy, h:mm a', 'id_ID').parse(selectedDate)
+        : DateTime.now(),
     );
 
     filteredNotes.insert(0, newNote);
@@ -172,7 +174,7 @@ void _showEditFolderTitleDialog() async {
         toolbarHeight: 80,
         backgroundColor: Color(0xFF3D7F67),
         // title: Text('Grup ${widget.folder.name}'),
-        title:         TextField(
+        title: TextField(
           autofocus: false,
           onChanged: onSearchTextChanged,
           style: TextStyle(fontSize: 16, color: Color(0xFF293942)),
@@ -297,7 +299,7 @@ void _showEditFolderTitleDialog() async {
                         // }
                       },
                       leading: IconButton(onPressed: () async {
-                        final result = await deleteConfirmation(context);
+                        final result = await deleteConfirmation(context, index);
                         if (result != null && result) {
                           deleteNote(index);
                         }
@@ -417,14 +419,47 @@ void _showEditFolderTitleDialog() async {
     );
   }
 
-  Future<dynamic> deleteConfirmation(BuildContext context) {
+  Future<dynamic> deleteConfirmation(BuildContext context, int index) {
     return showDialog(
                         barrierDismissible: false,
                         context: context, 
                         builder: (context) {
                           return AlertDialog(
-                            icon: Icon(Icons.dangerous),
-                            title: Text('Hapus Tugas?', textAlign: TextAlign.center,),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            title: RichText(
+                              textAlign: TextAlign.center,
+                        text: TextSpan(
+                          text: 'Hapus Tugas? \n\n',
+                          style: TextStyle(
+                            fontSize: 24, 
+                            fontWeight: FontWeight.bold, 
+                            color: Color(0xFF293942), 
+                            height: 1.5
+                            ),
+                          children: [
+                            TextSpan(
+                              text: 'Tugas dengan nama ',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.normal,
+                                color: Color(0xFF293942),
+                                height: 1.5
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: '\"${filteredNotes[index].title}\"',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  )
+                                ),
+                                TextSpan(
+                                  text: ' akan terhapus dan tidak bisa dikembalikan lagi.\n',
+                                )
+                              ]
+                            )
+                          ]
+                        )
+                      ),
                             content: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [

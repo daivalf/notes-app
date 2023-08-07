@@ -58,14 +58,47 @@ void _updateFolder(Folder updatedFolder) {
   });
 }
 
-Future<dynamic> _deleteConfirmationFolder(BuildContext context) {
+Future<dynamic> _deleteConfirmationFolder(BuildContext context, Folder folder) {
   return showDialog(
                         barrierDismissible: false,
                         context: context, 
                         builder: (context) {
                           return AlertDialog(
-                            icon: Icon(Icons.dangerous),
-                            title: Text('Hapus Tugas?', textAlign: TextAlign.center,),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            title: RichText(
+                              textAlign: TextAlign.center,
+                        text: TextSpan(
+                          text: 'Hapus Grup? \n\n',
+                          style: TextStyle(
+                            fontSize: 24, 
+                            fontWeight: FontWeight.bold, 
+                            color: Color(0xFF293942), 
+                            height: 1.5
+                            ),
+                          children: [
+                            TextSpan(
+                              text: 'Grup dengan nama ',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.normal,
+                                color: Color(0xFF293942),
+                                height: 1.5
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: '\"${folder.name}\"',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  )
+                                ),
+                                TextSpan(
+                                  text: ' akan terhapus dan tidak bisa dikembalikan lagi.\n',
+                                )
+                              ]
+                            )
+                          ]
+                        )
+                      ),
                             content: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -189,7 +222,7 @@ void deleteFolder(Folder folder) {
                     child: ListTile(
                       leading: IconButton(
                         onPressed: () async {
-                          final result = await _deleteConfirmationFolder(context);
+                          final result = await _deleteConfirmationFolder(context, folder);
                           if (result != null && result) {
                             deleteFolder(folder);
                           }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/note.dart';
+import 'package:file_picker/file_picker.dart';
 
 class EditScreen extends StatefulWidget {
   final Note? note;
@@ -15,6 +16,17 @@ class _EditScreenState extends State<EditScreen> {
 TextEditingController _titleController = TextEditingController();
 TextEditingController _contentController = TextEditingController();
 TextEditingController _dateController = TextEditingController();
+
+List<PlatformFile> attachments = [];
+
+  Future<void> _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result != null) {
+      setState(() {
+        attachments.add(result.files.single);
+      });
+    }
+  }
 
 // void _showDeleteConfirmationDialog() async {
 //     showDialog(
@@ -120,6 +132,7 @@ TextEditingController _dateController = TextEditingController();
                   style: TextStyle(color: Color(0xFF293942), fontSize: 16),
                   maxLines: null,
                   decoration: InputDecoration(
+                    labelStyle: TextStyle(fontSize: 20, color: Color(0xFF293942)),
                     contentPadding: EdgeInsets.only(bottom: 40),
                     border: InputBorder.none,
                     hintText: 'Tulis deskripsi..',
@@ -142,7 +155,7 @@ TextEditingController _dateController = TextEditingController();
                     fontSize: 16
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Pilih tanggal',
+                    hintText: 'Pilih tanggal dan waktu',
                     hintStyle: TextStyle(
                       color: Color(0xFF3D7F67), 
                       fontWeight: FontWeight.bold, 
@@ -187,6 +200,39 @@ TextEditingController _dateController = TextEditingController();
                     }
                   },
                 ),
+                SizedBox(height: 20,),
+                // TextField(
+                //   textAlign: TextAlign.center,
+                //   style: TextStyle(
+                //     color: Color(0xFF3D7F67), 
+                //     fontWeight: FontWeight.bold, 
+                //     fontSize: 16
+                //   ),
+                //   decoration: InputDecoration(
+                //     hintText: 'Tambah file lampiran',
+                //     hintStyle: TextStyle(
+                //       color: Color(0xFF3D7F67), 
+                //       fontWeight: FontWeight.bold, 
+                //       fontSize: 16),
+                //     focusedBorder: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(30),
+                //       borderSide: BorderSide(color: Color(0xFF3D7F67), width: 2.0),
+                //     ),
+                //       enabledBorder: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(30),
+                //       borderSide: BorderSide(color: Color(0xFF3D7F67), width: 2.0),
+                //     ),
+                //   ),
+                //   readOnly: true,
+                //   onTap: () {
+                //     _pickFile();
+                //   },
+                // ),
+                // Column(
+                //   children: attachments.map((attachment) {
+                //     return Text(attachment.name);
+                //   }).toList(),
+                // ),
               ],
             ),)
           ],
