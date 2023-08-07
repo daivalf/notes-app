@@ -1,39 +1,112 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:note_app/models/folder.dart';
 import 'package:note_app/models/note.dart';
-import 'package:note_app/screens/edit.dart';
+import 'package:note_app/screens/notes.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
+  
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
 
-List<Note> filteredNotes = [];
+  // List <Folder> folders = [];
+  // List <Note> notes = [];
+  Map<Folder, List<Note>> folderNotes = {};
+  Folder? selectedFolder;
+  bool _ascendingSort = true;
 
-@override
-void initState() {
-  super.initState();
-  initializeDateFormatting('id_ID', null);
-  filteredNotes = sampleNotes;
+  void _addNewFolder(String folderName) {
+    setState(() {
+      // folders.add(Folder(folderName, []));
+      // folderNotes[Folder(folderName, [])] = [];
+      final newFolder = Folder(folderName, []);
+      folderNotes[newFolder] = [];
+      selectedFolder = newFolder;
+    });
+  }
+
+  void _onFolderSelected(Folder folder) async {
+    setState(() {
+      selectedFolder = folder;
+    });
+    final updatedFolder = await
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NotesScreen(folder: folder, onUpdateFolder: _updateFolder, notes: folderNotes[folder] ?? []),
+      ),
+    );
+
+    if (updatedFolder != null) {
+      setState(() {
+        folderNotes[folder] = folderNotes.remove(folder)!;
+        folderNotes[updatedFolder] = folderNotes[updatedFolder] ?? [];
+      });
+    }
+  }
+
+void _updateFolder(Folder updatedFolder) {
+  setState(() {
+    List<Note>? notesOfCurrentFolder = folderNotes[selectedFolder]; // Use selectedFolder here
+
+    folderNotes.remove(selectedFolder); // Remove the current folder from folderNotes
+    folderNotes[updatedFolder] = notesOfCurrentFolder ?? []; // Add the updated folder back to folderNotes
+    selectedFolder = updatedFolder; // Update selectedFolder with the new folder
+  });
 }
 
-// void toggleTaskCompletion(Note task, List<Note> filteredNotes) {
-//   task.isCompleted = !task.isCompleted;
-//   filteredNotes.sort((a, b) => a.isCompleted ? 1 : -1);
-// }
+Future<dynamic> _deleteConfirmationFolder(BuildContext context) {
+  return showDialog(
+                        barrierDismissible: false,
+                        context: context, 
+                        builder: (context) {
+                          return AlertDialog(
+                            icon: Icon(Icons.dangerous),
+                            title: Text('Hapus Tugas?', textAlign: TextAlign.center,),
+                            content: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF3D4C7F),
+                                  padding: EdgeInsets.all(16)),
+                                  onPressed: (){
+                                    Navigator.pop(context, false);
+                                },
+                                  child: SizedBox(
+                                    width: 60,
+                                    child: Text('Batal',
+                                    textAlign: TextAlign.center,),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFD63636),
+                                  padding: EdgeInsets.all(16)),
+                                  onPressed: (){
+                                    Navigator.pop(context, true);
+                                  },
+                                    child: SizedBox(
+                                      width: 60,
+                                      child: Text('Hapus',
+                                      textAlign: TextAlign.center,),
+                                    ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+}
 
-void onSearchTextChanged(String searchText) {
-setState(() {
-  filteredNotes =
-  sampleNotes.where((note) => note.title.toLowerCase().contains(searchText.
-  toLowerCase()) || note.content.toLowerCase().contains(searchText.toLowerCase()))
-  .toList();
-});
+void deleteFolder(Folder folder) {
+  setState(() {
+    folderNotes.remove(folder);
+    if (selectedFolder == folder) {
+      selectedFolder == null;
+    }
+  });
 }
 
   @override
@@ -43,189 +116,171 @@ setState(() {
       appBar: AppBar(
         toolbarHeight: 80,
         backgroundColor: Color(0xFF3D7F67),
-        title: TextField(
-          autofocus: false,
-          onChanged: onSearchTextChanged,
-          style: TextStyle(fontSize: 16, color: Color(0xFF293942)),
-          decoration: InputDecoration(
-            contentPadding: EdgeInsets.symmetric(vertical: 12),
-            hintText: "Cari judul tugas",
-            hintStyle: TextStyle(color: Color(0xFF293942).withOpacity(0.5)),
-            prefixIcon: Icon(
-              Icons.search,
-              color: Color(0xFF293942).withOpacity(0.5),
-            ),
-            fillColor: Color(0xFFF0E9E0).withOpacity(0.7),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-              borderSide: BorderSide(color: Colors.transparent)
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-              borderSide: BorderSide(color: Colors.transparent)
-            ),
+        title: Text('Daftar Grup'),
+        titleTextStyle: TextStyle(
+          color: Color(0xFFF0E9E0), 
+          fontSize: 24, 
+          fontWeight: FontWeight.bold),
+        actions: [
+          IconButton(onPressed: (){
+            setState(() {
+              _ascendingSort = !_ascendingSort;
+    
+              List<Folder> sortedFolders = folderNotes.keys.toList()
+              ..sort((a, b) {
+              final comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+              return _ascendingSort ? comparison : -comparison;
+              });
+      
+              Map<Folder, List<Note>> sortedFolderNotes = {};
+              for (var folder in sortedFolders) {
+              sortedFolderNotes[folder] = folderNotes[folder]!;
+              }
+    
+              folderNotes = sortedFolderNotes;
+            });
+          }
+          , icon: Icon(_ascendingSort 
+              ? Icons.sort
+              : Icons.short_text,),
+            color: Color(0xFFF0E9E0),
           ),
-        ),
+        ],
       ),
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 20, 12, 0),
+        padding: EdgeInsets.fromLTRB(12, 20, 12, 0),
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Daftar Tugas', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Color(0xFF293942)),),
-                IconButton(
-                  onPressed: (){},
-                  padding: EdgeInsets.all(0),
-                  icon: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(color: Color(0xFF3D7F67),
-                  borderRadius: BorderRadius.circular(30)),
-                  child: Icon(Icons.question_mark, color: Color(0xFFF0E9E0),)))
+                // Text('Daftar Grup', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Color(0xFF293942)),),
+                // IconButton(
+                //   onPressed: (){},
+                //   padding: EdgeInsets.all(0),
+                //   icon: Container(
+                //   width: 40,
+                //   height: 40,
+                //   decoration: BoxDecoration(color: Color(0xFF3D7F67),
+                //   borderRadius: BorderRadius.circular(30)),
+                //   child: Icon(Icons.question_mark, color: Color(0xFFF0E9E0),)))
               ],
             ),
             SizedBox(height: 10,),
-            Expanded(child: filteredNotes.isEmpty
+            Expanded(child: folderNotes.isEmpty
             ? Center(
-              child: Text('Mulai menulis catatan \n dengan tombol + di bawah',
+              child: Text('Mulai membuat grup \n dengan tombol + di bawah',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFf293942),),
               textAlign: TextAlign.center,
               ),
             )
             : ListView.builder(
-              padding: EdgeInsets.only(top:20),
-              itemCount: filteredNotes.length,
+              padding: EdgeInsets.only(top: 20),
+              itemCount: folderNotes.length,
               itemBuilder: (context, index) {
+                var folder = folderNotes.keys.toList()[index];
                 return Card(
                   margin: EdgeInsets.only(bottom: 10),
                   elevation: 3,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  color: filteredNotes[index].isCompleted
-                  ? Color(0xFF3D7F67).withOpacity(0.6)
-                  : Color(0xFF3D7F67),
+                  color: Color(0xFF3D7F67),
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: ListTile(
-                      onTap: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                          builder: (BuildContext context) => 
-                            EditScreen(note: filteredNotes[index]),
-                          ),
-                        );
-                        if (result != null) {
-                          setState(() {
-                            int originalIndex =  sampleNotes.indexOf(filteredNotes[index]);
-                            sampleNotes[originalIndex]=Note(
-                                id: sampleNotes[originalIndex].id, 
-                                title: result[0], 
-                                content: result[1], 
-                                modifiedTime: DateTime.now(),);
-                            filteredNotes[index] = Note(
-                                id: filteredNotes[index].id, 
-                                title: result[0], 
-                                content: result[1], 
-                                modifiedTime: DateTime.now(),);
-                          });
-                        }
-                      },
-                      leading: IconButton(onPressed: () {
-                        setState(() {
-                          // Toggle completion state of selected task
-                          filteredNotes[index].isCompleted = !filteredNotes[index].isCompleted;
-                            // move to the bottom
-                            List<Note> completedTasks = [];
-                            List<Note> incompleteTasks = [];
-              
-                            for (int i = 0; i < filteredNotes.length; i++) {
-                              if (filteredNotes[i].isCompleted) {
-                              completedTasks.add(filteredNotes[i]);
-                              } else {
-                              incompleteTasks.add(filteredNotes[i]);
-                              }
-                            }
-              
-                          filteredNotes.clear();
-                          filteredNotes.addAll(incompleteTasks);
-                          filteredNotes.addAll(completedTasks);
-                        });
-                      },
-                      icon: filteredNotes[index].isCompleted
-                      ? Icon(Icons.check_circle, color: Color(0xFFF0E9E0),)
-                      : Icon(Icons.circle_outlined, color: Color(0xFFF0E9E0),),
-                      ),
+                      leading: IconButton(
+                        onPressed: () async {
+                          final result = await _deleteConfirmationFolder(context);
+                          if (result != null && result) {
+                            deleteFolder(folder);
+                          }
+                        }, 
+                        icon: Icon(Icons.delete, color: Color(0xFFF0E9E0),)
+                        ),
                       title: RichText(
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
                         text: TextSpan(
-                        text: '${filteredNotes[index].title} \n',
-                        style: TextStyle(
-                          decoration: filteredNotes[index].isCompleted
-                          ? TextDecoration.lineThrough
-                          : TextDecoration.none,
-                          fontSize: 18, 
-                          fontWeight: FontWeight.bold, 
-                          color: Color(0xFFF0E9E0), 
-                          height: 1.5),
-                        children: [
-                          TextSpan(
-                            text: '${filteredNotes[index].content}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
-                              color: Color(0xFFF0E9E0),
-                              height: 1.5),
-                          )
-                        ]
-                      )
-                      ),
-                      subtitle: Padding(
-                        padding: const EdgeInsets.only(top:8.0),
-                        child: Text(
-                          'Diubah pada: ${DateFormat('EEEE, d MMMM yyyy, h:mm a', 'id_ID').format(filteredNotes[index].modifiedTime)}',
+                          text: '${folder.name}',
                           style: TextStyle(
-                            fontSize: 10,
-                            fontStyle: FontStyle.italic,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                             color: Color(0xFFF0E9E0),
                           )
-                          ),
+                        )
                       ),
+                      onTap: () {
+                        _onFolderSelected(folder);
+                      },
                     ),
                   ),
                 );
               },
-            ))
+            )
+            )
           ],
         ),
-      ),
+        ),
       floatingActionButton: Container(
         height: 80,
         width: 80,
-        child: FloatingActionButton(onPressed: ()async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (BuildContext context) => const EditScreen(),
-          ),
+        child: FloatingActionButton(onPressed: () {
+          showDialog(
+            barrierDismissible: false,
+            context: context, 
+            builder: (BuildContext context) {
+              String folderName = '';
+              return AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                title: TextField(
+                  onChanged: (value) {
+                    folderName = value;
+                  },
+                  style: TextStyle(fontSize: 20, color: Color(0xFF293942)),
+                  decoration: InputDecoration(
+                  hintText: 'Tulis nama grup',
+                  hintStyle: TextStyle(color: Color(0xFF293942).withOpacity(0.5),)
+                  ),
+                ),
+                content: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFD63636),
+              padding: EdgeInsets.all(16)),
+              onPressed: (){
+                Navigator.pop(context, '');
+              },
+              child: SizedBox(
+                width: 60,
+                child: Text('Batal',
+                textAlign: TextAlign.center,),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF3D4C7F),
+              padding: EdgeInsets.all(16)),
+              onPressed: (){
+                _addNewFolder(folderName);
+                Navigator.of(context).pop();
+              },
+              child: SizedBox(
+                width: 60,
+                child: Text('Simpan',
+                textAlign: TextAlign.center,),
+              ),
+            ),
+          ],
+        )
+                // actions: [
+                //   TextButton(onPressed: () {
+                //     _addNewFolder(folderName);
+                //     Navigator.of(context).pop();
+                //   }, 
+                //   child: Text('Simpan'),
+                //   ),
+                // ],
+              );
+            },
           );
-          
-          if (result != null) {
-            setState(() {
-              sampleNotes.insert(
-              0,
-              Note(
-                id: sampleNotes.length, 
-                title: result[0],
-                content: result[1], 
-                modifiedTime: DateTime.now(),));
-                filteredNotes = sampleNotes;
-            });
-          }
-
         },
         elevation: 20,
         backgroundColor: Color(0xFF3D4C7F),

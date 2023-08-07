@@ -4,13 +4,17 @@ class Note {
   String content;
   DateTime modifiedTime;
   bool isCompleted;
+  String folderName;
+  DateTime selectedDate;
 
   Note({
     required this.id,
     required this.title,
     required this.content,
     required this.modifiedTime,
+    required this.selectedDate,
     this.isCompleted = false,
+    this.folderName = '',
   });
 }
 
