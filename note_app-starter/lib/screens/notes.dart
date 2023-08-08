@@ -62,6 +62,21 @@ void _addNewNote(String title, String content, String selectedDate) {
   });
 }
 
+// void deleteNote(Note note) {
+//   setState(() {
+//     filteredNotes.remove(note); // Also remove it from filteredNotes if needed
+//   });
+// }
+
+// void _navigateToEditScreen(Note note) async {
+//   await Navigator.push(
+//     context,
+//     MaterialPageRoute(
+//       builder: (context) => EditScreen(note: note, deleteNote: deleteNote),
+//     ),
+//   );
+// }
+
 void _onNoteTap(Note note) async {
   final result = await Navigator.push(
     context, 
@@ -97,16 +112,21 @@ void _showEditFolderTitleDialog() async {
     context: context, 
     builder: (context) {
       String folderTitle = widget.folder.name;
-      return AlertDialog(
+
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: TextField(
+          style: TextStyle(fontSize: 24, color: Color(0xFF293942),),
+          textAlign: TextAlign.center,
           controller: TextEditingController(text: widget.folder.name),
           onChanged: (value) {
-            folderTitle = value;
+                folderTitle = value;
           },
           decoration: InputDecoration(
             hintText: 'Tulis nama grup',
-            hintStyle: TextStyle(color: Color(0xFF293942).withOpacity(0.5),),
+            hintStyle: TextStyle(color: Color(0xFF293942).withOpacity(0.5), fontSize: 24),
           ),
         ),
         content: Row(
@@ -138,21 +158,8 @@ void _showEditFolderTitleDialog() async {
             ),
           ],
         )
-        // actions: [
-        //   TextButton(
-        //     onPressed: () {
-        //       Navigator.pop(context, '');
-        //     }, 
-        //     child: Text('Batal'),
-        //     ),
-        //   TextButton(
-        //     onPressed: () {
-        //       Navigator.pop(context, folderTitle);
-        //     }, 
-        //     child: Text('Simpan'),
-        //     ),
-        // ],
       );
+        });
     },
   );
 
@@ -200,13 +207,13 @@ void _showEditFolderTitleDialog() async {
         ),
         titleTextStyle: TextStyle(color: Color(0xFFF0E9E0), fontSize: 18, fontWeight: FontWeight.bold),
         centerTitle: true,
-        actions: [
-          IconButton(onPressed: (){
-            _showEditFolderTitleDialog();
-          }
-          , icon: Icon(Icons.edit), color: Color(0xFFF0E9E0),
-          ),
-        ],
+        // actions: [
+        //   IconButton(onPressed: (){
+        //     _showEditFolderTitleDialog();
+        //   }
+        //   , icon: Icon(Icons.edit), color: Color(0xFFF0E9E0),
+        //   ),
+        // ],
         // TextField(
         //   autofocus: false,
         //   onChanged: onSearchTextChanged,
@@ -240,15 +247,17 @@ void _showEditFolderTitleDialog() async {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('${widget.folder.name}', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Color(0xFF293942)),),
-                // IconButton(
-                //   onPressed: (){},
-                //   padding: EdgeInsets.all(0),
-                //   icon: Container(
-                //   width: 40,
-                //   height: 40,
-                //   decoration: BoxDecoration(color: Color(0xFF3D7F67),
-                //   borderRadius: BorderRadius.circular(30)),
-                //   child: Icon(Icons.question_mark, color: Color(0xFFF0E9E0),)))
+                IconButton(
+                  onPressed: (){
+                    _showEditFolderTitleDialog();
+                  },
+                  padding: EdgeInsets.all(0),
+                  icon: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(color: Color(0xFF3D7F67),
+                  borderRadius: BorderRadius.circular(30)),
+                  child: Icon(Icons.edit, color: Color(0xFFF0E9E0),)))
               ],
             ),
             SizedBox(height: 10,),
@@ -275,61 +284,40 @@ void _showEditFolderTitleDialog() async {
                     child: ListTile(
                       onTap: () async {
                         _onNoteTap(filteredNotes[index]);
-                        // final result = await Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //   builder: (BuildContext context) => 
-                        //     EditScreen(note: filteredNotes[index]),
-                        //   ),
-                        // );
-                        // if (result != null) {
-                        //   setState(() {
-                        //     int originalIndex =  widget.notes.indexOf(filteredNotes[index]);
-                        //     widget.notes[originalIndex]=Note(
-                        //         id: filteredNotes[originalIndex].id, 
-                        //         title: result[0], 
-                        //         content: result[1], 
-                        //         modifiedTime: DateTime.now(),);
-                        //     filteredNotes[index] = Note(
-                        //         id: filteredNotes[index].id, 
-                        //         title: result[0], 
-                        //         content: result[1], 
-                        //         modifiedTime: DateTime.now(),);
-                        //   });
-                        // }
                       },
-                      leading: IconButton(onPressed: () async {
+                      leading: IconButton(
+                            onPressed: () {
+                            setState(() {
+                              // Toggle completion state of selected task
+                              filteredNotes[index].isCompleted = !filteredNotes[index].isCompleted;
+                                // move to the bottom
+                                List<Note> completedTasks = [];
+                                List<Note> incompleteTasks = [];
+              
+                                for (int i = 0; i < filteredNotes.length; i++) {
+                                  if (filteredNotes[i].isCompleted) {
+                                  completedTasks.add(filteredNotes[i]);
+                                  } else {
+                                  incompleteTasks.add(filteredNotes[i]);
+                                  }
+                                }
+              
+                              filteredNotes.clear();
+                              filteredNotes.addAll(incompleteTasks);
+                              filteredNotes.addAll(completedTasks);
+                            });
+                          },
+                          icon: filteredNotes[index].isCompleted
+                          ? Icon(Icons.check_circle, color: Color(0xFFF0E9E0),)
+                          : Icon(Icons.circle_outlined, color: Color(0xFFF0E9E0),),
+                          ),
+                      trailing: IconButton(onPressed: () async {
                         final result = await deleteConfirmation(context, index);
                         if (result != null && result) {
                           deleteNote(index);
                         }
                       }, 
                       icon: Icon(Icons.delete, color: Color(0xFFF0E9E0),)
-                      ),
-                      trailing: IconButton(onPressed: () {
-                        setState(() {
-                          // Toggle completion state of selected task
-                          filteredNotes[index].isCompleted = !filteredNotes[index].isCompleted;
-                            // move to the bottom
-                            List<Note> completedTasks = [];
-                            List<Note> incompleteTasks = [];
-              
-                            for (int i = 0; i < filteredNotes.length; i++) {
-                              if (filteredNotes[i].isCompleted) {
-                              completedTasks.add(filteredNotes[i]);
-                              } else {
-                              incompleteTasks.add(filteredNotes[i]);
-                              }
-                            }
-              
-                          filteredNotes.clear();
-                          filteredNotes.addAll(incompleteTasks);
-                          filteredNotes.addAll(completedTasks);
-                        });
-                      },
-                      icon: filteredNotes[index].isCompleted
-                      ? Icon(Icons.check_circle, color: Color(0xFFF0E9E0),)
-                      : Icon(Icons.circle_outlined, color: Color(0xFFF0E9E0),),
                       ),
                       title: RichText(
                         maxLines: 3,
@@ -353,9 +341,9 @@ void _showEditFolderTitleDialog() async {
                               fontWeight: FontWeight.normal,
                               color: Color(0xFFF0E9E0),
                               height: 1.5),
-                          )
+                          ),
                         ]
-                      )
+                      ),
                       ),
                       subtitle: Padding(
                         padding: const EdgeInsets.only(top:8.0),
@@ -377,7 +365,8 @@ void _showEditFolderTitleDialog() async {
                 );
               },
             )
-            )
+            ),
+            SizedBox(height: 60,)
           ],
         ),
       ),

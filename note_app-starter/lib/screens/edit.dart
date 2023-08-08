@@ -17,13 +17,14 @@ TextEditingController _titleController = TextEditingController();
 TextEditingController _contentController = TextEditingController();
 TextEditingController _dateController = TextEditingController();
 
-List<PlatformFile> attachments = [];
+List<String> selectedFileNames = [];
 
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null) {
       setState(() {
-        attachments.add(result.files.single);
+        // attachments.add(result.files.single);
+        selectedFileNames.add(result.files.single.name);
       });
     }
   }
@@ -91,25 +92,22 @@ List<PlatformFile> attachments = [];
           onPressed: () => Navigator.pop(context), 
           icon: new Icon(Icons.arrow_back_ios_new, color: Color(0xFFF0E9E0),)
           ),
-        // actions: <Widget>[
-        //   if (widget.note != null)
-        //   IconButton(onPressed: (){
-        //   }, 
-        //     icon: Icon(Icons.delete, color: Color(0xFFF0E9E0),)
-        //   ),
-        // ],
+        actions: <Widget>[
+          IconButton(onPressed: (){
+            Navigator.pop(context, [
+              _titleController.text,
+              _contentController.text,
+              _dateController.text,
+            ]);
+          }, 
+            icon: Icon(Icons.check, color: Color(0xFFF0E9E0),)
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-        child: Column(
-          children: [
-            Row(
-              children: [
-
-              ],
-            ),
-            Expanded(child: ListView(
-              children: [
+body: Padding(
+  padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+  child: Column(
+    children: [
                 TextField(
                   controller: _titleController,
                   style: TextStyle(color: Color(0xFF293942), fontSize: 36),
@@ -200,63 +198,145 @@ List<PlatformFile> attachments = [];
                     }
                   },
                 ),
-                SizedBox(height: 20,),
-                // TextField(
-                //   textAlign: TextAlign.center,
-                //   style: TextStyle(
-                //     color: Color(0xFF3D7F67), 
-                //     fontWeight: FontWeight.bold, 
-                //     fontSize: 16
-                //   ),
-                //   decoration: InputDecoration(
-                //     hintText: 'Tambah file lampiran',
-                //     hintStyle: TextStyle(
-                //       color: Color(0xFF3D7F67), 
-                //       fontWeight: FontWeight.bold, 
-                //       fontSize: 16),
-                //     focusedBorder: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(30),
-                //       borderSide: BorderSide(color: Color(0xFF3D7F67), width: 2.0),
-                //     ),
-                //       enabledBorder: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(30),
-                //       borderSide: BorderSide(color: Color(0xFF3D7F67), width: 2.0),
-                //     ),
-                //   ),
-                //   readOnly: true,
-                //   onTap: () {
-                //     _pickFile();
-                //   },
-                // ),
-                // Column(
-                //   children: attachments.map((attachment) {
-                //     return Text(attachment.name);
-                //   }).toList(),
-                // ),
-              ],
-            ),)
-          ],
+      // TextField(
+      //   textAlign: TextAlign.center,
+      //   style: TextStyle(
+      //     color: Color(0xFF3D7F67), 
+      //     fontWeight: FontWeight.bold, 
+      //     fontSize: 16
+      //   ),
+      //   decoration: InputDecoration(
+      //     hintText: 'Tambah file lampiran',
+      //     hintStyle: TextStyle(
+      //       color: Color(0xFF3D7F67), 
+      //       fontWeight: FontWeight.bold, 
+      //       fontSize: 16),
+      //     focusedBorder: OutlineInputBorder(
+      //       borderRadius: BorderRadius.circular(30),
+      //       borderSide: BorderSide(color: Color(0xFF3D7F67), width: 2.0),
+      //     ),
+      //       enabledBorder: OutlineInputBorder(
+      //       borderRadius: BorderRadius.circular(30),
+      //       borderSide: BorderSide(color: Color(0xFF3D7F67), width: 2.0),
+      //     ),
+      //   ),
+      //   readOnly: true,
+      //   onTap: () {
+      //     _pickFile();
+      //   },
+      // ),
+      SizedBox(height: 20),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('File Lampiran', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF293942)),),
+          IconButton(
+            onPressed: (){
+              _pickFile();
+            },
+            padding: EdgeInsets.all(0),
+            icon: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: Color(0xFF3D7F67),
+              borderRadius: BorderRadius.circular(30)),
+            child: Icon(Icons.add, color: Color(0xFFF0E9E0),)))
+        ],
+      ),
+      SizedBox(height: 20),
+      Expanded(
+        child: ListView.builder(
+          itemCount: selectedFileNames.length,
+          itemBuilder: (context, index) {
+            return Card(
+              margin: EdgeInsets.only(bottom: 10),
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: Color(0xFF3D7F67), width: 2.0),
+              ),
+              child: ListTile(
+                onTap: () {},
+                title: Text(selectedFileNames[index]),
+                titleTextStyle: TextStyle(color: Color(0xFF3D7F67), fontSize: 16),
+                leading: Icon(Icons.article, color: Color(0xFF3D7F67),),
+                trailing: IconButton(
+                  onPressed: (){
+                    showDialog(
+                      context: context, 
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            title: RichText(
+                              textAlign: TextAlign.center,
+                        text: TextSpan(
+                          text: 'Hapus file lampiran?',
+                          style: TextStyle(
+                            fontSize: 24, 
+                            fontWeight: FontWeight.bold, 
+                            color: Color(0xFF293942), 
+                            height: 1.5
+                            ),
+                        )
+                      ),
+                            content: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF3D7F67),
+                                  padding: EdgeInsets.all(16)),
+                                  onPressed: (){
+                                    Navigator.pop(context);
+                                },
+                                  child: SizedBox(
+                                    width: 60,
+                                    child: Text('Batal',
+                                    textAlign: TextAlign.center,),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFD63636),
+                                  padding: EdgeInsets.all(16)),
+                                  onPressed: (){
+                                    setState(() {
+                                      selectedFileNames.removeAt(index);
+                                    });
+                                  },
+                                    child: SizedBox(
+                                      width: 60,
+                                      child: Text('Hapus',
+                                      textAlign: TextAlign.center,),
+                                    ),
+                                ),
+                              ],
+                            ),
+                          );
+                      });
+                }, 
+                icon: Icon(Icons.delete, color: Color(0xFF3D7F67),)),
+              ),
+            );
+          },
         ),
       ),
-      floatingActionButton: Container(
-        height: 80,
-        width: 80,
-        child: FloatingActionButton(onPressed: () {
-            Navigator.pop(context, [
-              _titleController.text,
-              _contentController.text,
-              _dateController.text,
-            ]);
-        },
-        elevation: 20,
-        backgroundColor: Color(0xFF3D4C7F),
-        child: Icon(
-          Icons.save,
-          size: 40,
-          color: Color(0xFFF0E9E0),
-          ),
-        ),
-      ),
+    ],
+  ),
+),
+      // floatingActionButton: Container(
+      //   height: 80,
+      //   width: 80,
+      //   child: FloatingActionButton(onPressed: () {
+
+      //   },
+      //   elevation: 20,
+      //   backgroundColor: Color(0xFF3D4C7F),
+      //   child: Icon(
+      //     Icons.save,
+      //     size: 40,
+      //     color: Color(0xFFF0E9E0),
+      //     ),
+      //   ),
+      // ),
     );
   }
 }

@@ -220,7 +220,7 @@ void deleteFolder(Folder folder) {
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: ListTile(
-                      leading: IconButton(
+                      trailing: IconButton(
                         onPressed: () async {
                           final result = await _deleteConfirmationFolder(context, folder);
                           if (result != null && result) {
@@ -230,7 +230,7 @@ void deleteFolder(Folder folder) {
                         icon: Icon(Icons.delete, color: Color(0xFFF0E9E0),)
                         ),
                       title: RichText(
-                        textAlign: TextAlign.center,
+                        // textAlign: TextAlign.center,
                         text: TextSpan(
                           text: '${folder.name}',
                           style: TextStyle(
@@ -248,7 +248,8 @@ void deleteFolder(Folder folder) {
                 );
               },
             )
-            )
+            ),
+            SizedBox(height: 60,)
           ],
         ),
         ),
@@ -261,16 +262,24 @@ void deleteFolder(Folder folder) {
             context: context, 
             builder: (BuildContext context) {
               String folderName = '';
-              return AlertDialog(
+              bool isTextFieldNotEmpty = false;
+              
+              return StatefulBuilder(
+                builder: (context, setState) {
+                  return AlertDialog(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 title: TextField(
                   onChanged: (value) {
-                    folderName = value;
+                    setState(() {
+                      folderName = value;
+                      isTextFieldNotEmpty = value.isNotEmpty;
+                    });
                   },
-                  style: TextStyle(fontSize: 20, color: Color(0xFF293942)),
+                  style: TextStyle(fontSize: 24, color: Color(0xFF293942),),
+                  textAlign: TextAlign.center,
                   decoration: InputDecoration(
-                  hintText: 'Tulis nama grup',
-                  hintStyle: TextStyle(color: Color(0xFF293942).withOpacity(0.5),)
+                    hintText: 'Tulis nama grup',
+                    hintStyle: TextStyle(color: Color(0xFF293942).withOpacity(0.5), fontSize: 24),
                   ),
                 ),
                 content: Row(
@@ -289,12 +298,14 @@ void deleteFolder(Folder folder) {
               ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF3D4C7F),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF3D4C7F),
               padding: EdgeInsets.all(16)),
-              onPressed: (){
+              onPressed: isTextFieldNotEmpty ? (){
                 _addNewFolder(folderName);
                 Navigator.of(context).pop();
-              },
+              }
+              : null,
               child: SizedBox(
                 width: 60,
                 child: Text('Simpan',
@@ -303,15 +314,8 @@ void deleteFolder(Folder folder) {
             ),
           ],
         )
-                // actions: [
-                //   TextButton(onPressed: () {
-                //     _addNewFolder(folderName);
-                //     Navigator.of(context).pop();
-                //   }, 
-                //   child: Text('Simpan'),
-                //   ),
-                // ],
               );
+                });
             },
           );
         },
