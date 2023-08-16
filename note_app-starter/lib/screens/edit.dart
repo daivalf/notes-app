@@ -270,20 +270,31 @@ body: Padding(
                             title: RichText(
                               textAlign: TextAlign.center,
                         text: TextSpan(
-                          text: 'Hapus file lampiran?',
+                          text: 'Hapus File?\n\n',
                           style: TextStyle(
-                            fontSize: 24, 
+                            fontSize: 20, 
                             fontWeight: FontWeight.bold, 
                             color: Color(0xFF293942), 
                             height: 1.5
                             ),
-                        )
+                            children: [
+                              TextSpan(
+                                text: 'File tidak bisa dikembalikan lagi.\n',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.normal,
+                                color: Color(0xFF293942),
+                                height: 1.5
+                              ),
+                              )
+                            ]
+                        ),
                       ),
                             content: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 ElevatedButton(
-                                  style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF3D7F67),
+                                  style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF3D4C7F),
                                   padding: EdgeInsets.all(16)),
                                   onPressed: (){
                                     Navigator.pop(context);
@@ -300,6 +311,7 @@ body: Padding(
                                   onPressed: (){
                                     setState(() {
                                       selectedFileNames.removeAt(index);
+                                      Navigator.pop(context);
                                     });
                                   },
                                     child: SizedBox(
