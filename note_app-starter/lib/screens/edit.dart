@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/note.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter/services.dart';
 
 class EditScreen extends StatefulWidget {
   final Note? note;
@@ -17,6 +21,148 @@ TextEditingController _titleController = TextEditingController();
 TextEditingController _contentController = TextEditingController();
 TextEditingController _dateController = TextEditingController();
 
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+
+bool isFormValid = false;
+bool canProceed() {
+  return _titleController.text.isNotEmpty && _dateController.text.isNotEmpty;
+}
+
+void initializeNotifications() async {
+  // const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('ic_launcher');
+  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('mipmap/ic_launcher');
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
+      final String? payload = notificationResponse.payload;
+      if (payload != null) {
+        debugPrint('notification payload: $payload');
+      }
+    },
+  );
+}
+
+// void onDidReceiveNotificationResponse(NotificationResponse notificationResponse) async {
+//     final String? payload = notificationResponse.payload;
+//     if (notificationResponse.payload != null) {
+//       debugPrint('notification payload: $payload');
+//     }
+//     await Navigator.push(
+//       context,
+//       MaterialPageRoute<void>(builder: (context) => SecondScreen(payload)),
+//     );
+// }
+
+Future<void> scheduleReminderNotification(DateTime dateTime, String taskTitle) async {
+  // const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+  //   'reminder_channel',
+  //   'Reminder Channel',
+  //   'Channel for reminder notifications',
+  //   importance: Importance.high,
+  //   priority: Priority.high,
+  // );
+  const String alarmDismissActionId = 'alarm_dismiss_action';
+
+  AndroidNotificationDetails androidNotificationDetails =
+    AndroidNotificationDetails(
+      'your channel id', 
+      'your channel name',
+        channelDescription: 'your channel description',
+        importance: Importance.max,
+        priority: Priority.high,
+        enableVibration: true,
+        styleInformation: BigTextStyleInformation('Kegiatan anda pada catatan "$taskTitle" akan segera dimulai!',),
+        ticker: 'ticker',
+        playSound: true,
+        sound: RawResourceAndroidNotificationSound('raw/alarm'),
+    );
+        
+  NotificationDetails notificationDetails = NotificationDetails(
+    android: androidNotificationDetails
+  );
+  
+  // await flutterLocalNotificationsPlugin.show(
+  //   0, 'plain title', 'plain body', notificationDetails,
+  //   payload: 'item x');
+
+  // final now = DateTime.now();
+  // final scheduledTime = dateTime.subtract(Duration(minutes: 30));
+  final now = tz.TZDateTime.now(tz.local);
+  final scheduledTime = tz.TZDateTime.from(dateTime, tz.local);
+
+  print('Scheduled Time: $scheduledTime');
+  print('Current Time: $now');
+
+  if (scheduledTime.isAfter(now)) {
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      0,
+      'Pengingat!',
+      'Kegiatan anda pada catatan "$taskTitle" akan segera dimulai!',
+      scheduledTime,
+      notificationDetails,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
+}
+
+
+void showFillFieldsDialog() {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: RichText(
+                              textAlign: TextAlign.center,
+                        text: TextSpan(
+                          text: 'Semua data belum terisi \n\n',
+                          style: TextStyle(
+                            fontSize: 22, 
+                            fontWeight: FontWeight.bold, 
+                            color: Color(0xFF293942), 
+                            height: 1.5
+                            ),
+                          children: [
+                            TextSpan(
+                              text: 'Silahkan isi judul dan pilih tanggal terlebih dahulu.\n',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.normal,
+                                color: Color(0xFF293942),
+                                height: 1.5
+                              ),
+                            )
+                          ]
+                        )
+                      ),
+          content: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF3D4C7F),
+                                  padding: EdgeInsets.all(16)),
+                                  onPressed: (){
+                                    Navigator.of(context).pop();
+                                },
+                                  child: SizedBox(
+                                    width: 60,
+                                    child: Text('Ok',
+                                    textAlign: TextAlign.center,),
+                                  ),
+                                ),
+                              ],
+                            ),
+        );
+      },
+    );
+  }
+
 List<String> selectedFileNames = [];
 
   Future<void> _pickFile() async {
@@ -29,45 +175,11 @@ List<String> selectedFileNames = [];
     }
   }
 
-// void _showDeleteConfirmationDialog() async {
-//     showDialog(
-//     context: context, 
-//     builder: (context) {
-//       return AlertDialog(
-//         title: Text('Hapus Tugas?'),
-//         content: Row(
-//           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//           children: [
-//             ElevatedButton(
-//               style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF3D4C7F),
-//               padding: EdgeInsets.all(16)),
-//               onPressed: (){
-//                 Navigator.pop(context);
-//               },
-//               child: SizedBox(
-//                 width: 60,
-//                 child: Text('Batal',
-//                 textAlign: TextAlign.center,),
-//               ),
-//             ),
-//             ElevatedButton(
-//               style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFD63636),
-//               padding: EdgeInsets.all(16)),
-//               onPressed: (){
-//                 Navigator.pop(context);
-//               },
-//               child: SizedBox(
-//                 width: 60,
-//                 child: Text('Hapus',
-//                 textAlign: TextAlign.center,),
-//               ),
-//             ),
-//           ],
-//         ),
-//       );
-//     },
-//   );
-// }
+  void _updateFormValidity() {
+    setState(() {
+      isFormValid = _titleController.text.isNotEmpty && _dateController.text.isNotEmpty;
+    });
+  }
 
 @override
   void initState() {
@@ -77,6 +189,9 @@ List<String> selectedFileNames = [];
     _contentController = TextEditingController(text: widget.note!.content);
     _dateController = TextEditingController(text: DateFormat('EEEE, d MMMM yyyy, h:mm a', 'id_ID').format(widget.note!.selectedDate));
   }
+    tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+    initializeNotifications();
     super.initState();
 
   }
@@ -93,12 +208,16 @@ List<String> selectedFileNames = [];
           icon: new Icon(Icons.arrow_back_ios_new, color: Color(0xFFF0E9E0),)
           ),
         actions: <Widget>[
-          IconButton(onPressed: (){
+          IconButton(onPressed: canProceed() 
+          ? (){
             Navigator.pop(context, [
               _titleController.text,
               _contentController.text,
               _dateController.text,
             ]);
+          }
+          : () {
+            showFillFieldsDialog();
           }, 
             icon: Icon(Icons.check, color: Color(0xFFF0E9E0),)
           ),
@@ -194,37 +313,14 @@ body: Padding(
                         _dateController.text = DateFormat('EEEE, d MMMM yyyy, h:mm a', 'id_ID').format(pickedDateTime);
                         widget.note?.selectedDate = pickedDateTime;
                       });
+
+                      _updateFormValidity();
+                      // scheduleReminderNotification(pickedDateTime); // Schedule the reminder
+                      scheduleReminderNotification(pickedDateTime.subtract(Duration(minutes: 30)), _titleController.text);
                       }
                     }
                   },
                 ),
-      // TextField(
-      //   textAlign: TextAlign.center,
-      //   style: TextStyle(
-      //     color: Color(0xFF3D7F67), 
-      //     fontWeight: FontWeight.bold, 
-      //     fontSize: 16
-      //   ),
-      //   decoration: InputDecoration(
-      //     hintText: 'Tambah file lampiran',
-      //     hintStyle: TextStyle(
-      //       color: Color(0xFF3D7F67), 
-      //       fontWeight: FontWeight.bold, 
-      //       fontSize: 16),
-      //     focusedBorder: OutlineInputBorder(
-      //       borderRadius: BorderRadius.circular(30),
-      //       borderSide: BorderSide(color: Color(0xFF3D7F67), width: 2.0),
-      //     ),
-      //       enabledBorder: OutlineInputBorder(
-      //       borderRadius: BorderRadius.circular(30),
-      //       borderSide: BorderSide(color: Color(0xFF3D7F67), width: 2.0),
-      //     ),
-      //   ),
-      //   readOnly: true,
-      //   onTap: () {
-      //     _pickFile();
-      //   },
-      // ),
       SizedBox(height: 20),
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
