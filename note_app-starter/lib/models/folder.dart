@@ -2,7 +2,7 @@ import 'package:note_app/models/note.dart';
 
 class Folder {
   String name;
-  List <Note> notes;
+  List<Note> notes;
 
   Folder(
     this.name,
