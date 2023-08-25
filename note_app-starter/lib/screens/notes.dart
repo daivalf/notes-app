@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:note_app/models/note.dart';
-import 'package:note_app/models/folder.dart';
-import 'package:note_app/screens/edit.dart';
+import 'package:PengingatKu/models/note.dart';
+import 'package:PengingatKu/models/folder.dart';
+import 'package:PengingatKu/screens/edit.dart';
 
 class NotesScreen extends StatefulWidget {
   final Folder folder;

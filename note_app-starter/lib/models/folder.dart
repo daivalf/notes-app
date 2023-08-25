@@ -1,4 +1,4 @@
-import 'package:note_app/models/note.dart';
+import 'package:PengingatKu/models/note.dart';
 
 class Folder {
   String name;

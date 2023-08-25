@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:note_app/screens/home.dart';
-import 'package:note_app/screens/splash.dart';
+import 'package:PengingatKu/screens/home.dart';
+import 'package:PengingatKu/screens/splash.dart';
 
 void main() {
   runApp(const MainApp());

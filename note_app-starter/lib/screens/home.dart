@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:note_app/models/folder.dart';
-import 'package:note_app/models/note.dart';
-import 'package:note_app/screens/notes.dart';
+import 'package:PengingatKu/models/folder.dart';
+import 'package:PengingatKu/models/note.dart';
+import 'package:PengingatKu/screens/notes.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
