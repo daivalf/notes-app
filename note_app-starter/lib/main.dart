@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:note_app/screens/home.dart';
+import 'package:note_app/screens/splash.dart';
 
 void main() {
   runApp(const MainApp());
@@ -11,7 +12,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: HomeScreen(),
+      home: SplashScreen(),
     );
   }
 }
